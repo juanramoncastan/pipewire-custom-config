@@ -1,0 +1,84 @@
+########### Jack USB rules #########
+
+#---------- common conditions ---------------------
+#SUBSYSTEM!="sound", DRIVERS!="snd-usb-audio", GOTO="end" ### This line also  works
+ENV{SUBSYSTEM}!="sound", ENV{ID_USB_DRIVER}!="snd-usb-audio", GOTO="end"
+
+
+
+##### RME UFXII ##### --------- 2A39:3FD1
+ACTION=="add", ENV{ID_VENDOR_ID}=="2a39", ENV{ID_MODEL_ID}=="3fd1", \
+ENV{USB_AUDIO_INTERFACE}="Fireface_UFXII", \
+ENV{PORT_L}="playback_1", ENV{PORT_R}="playback_2", \
+GOTO="start"
+
+##### Midas MR18 ##### -------- 26A0:0009
+ACTION=="add", ENV{ID_VENDOR_ID}=="26a0", ENV{ID_MODEL_ID}=="0009", \
+ENV{USB_AUDIO_INTERFACE}="Midas_MR18", \
+ENV{PORT_L}="playback_17", ENV{PORT_R}="playback_18", \
+GOTO="start"
+
+##### Midas M32R ##### -------- 26a0:0500
+ACTION=="add", ENV{ID_VENDOR_ID}=="26a0", ENV{ID_MODEL_ID}=="0500", \
+ENV{USB_AUDIO_INTERFACE}="Midas_M32", \
+ENV{PORT_L}="playback_1", ENV{PORT_R}="playback_2", \
+GOTO="start"
+
+##### Soundcraft SIGNATURE 12MTK ##### -------- 05FC:0021
+ACTION=="add", ENV{ID_VENDOR_ID}=="05fc", ENV{ID_MODEL_ID}=="0021", \
+ENV{USB_AUDIO_INTERFACE}="Soundcraft_Signature12", \
+ENV{PORT_L}="playback_11", ENV{PORT_R}="playback_12", \
+GOTO="start"
+
+##### Soundcraft SIGNATURE 22MTK ##### -------- 05FC:0022
+ACTION=="add", ENV{ID_VENDOR_ID}=="05fc", ENV{ID_MODEL_ID}=="0022", \
+ENV{USB_AUDIO_INTERFACE}="Soundcraft_Signature22", \
+ENV{PORT_L}="playback_21", ENV{PORT_R}="playback_22", \
+GOTO="start"
+
+##### Mackie Onyx 12 ##### -------- 0a73:0026
+ACTION=="add", ENV{ID_VENDOR_ID}=="0a73", ENV{ID_MODEL_ID}=="0026", \
+ENV{USB_AUDIO_INTERFACE}="Mackie_Onyx12", \
+ENV{PORT_L}="playback_RL", ENV{PORT_R}="playback_RR", \
+GOTO="start"
+
+##### Focusrite Scarlett Solo ##### -------- 1235:8211
+ACTION=="add", ENV{ID_VENDOR_ID}=="1235", ENV{ID_MODEL_ID}=="8211", \
+ENV{USB_AUDIO_INTERFACE}="Focusrite_Scarlett", \
+ENV{PORT_L}="playback_1", \ENV{PORT_R}="playback_2", \
+GOTO="start"
+
+##### M-Audio Fast Track ##### -------- 0763:2012
+ACTION=="add", ENV{ID_VENDOR_ID}=="0763", ENV{ID_MODEL_ID}=="2012", \
+ENV{USB_AUDIO_INTERFACE}="M-Audio_FastTrack", \
+ENV{PORT_L}="playback_1", \ENV{PORT_R}="playback_2", \
+GOTO="start"
+
+##### Allen & Heath CQ-12 ##### -------- 22F0:0026
+ACTION=="add", ENV{ID_VENDOR_ID}=="22f0", ENV{ID_MODEL_ID}=="0026", \
+ENV{USB_AUDIO_INTERFACE}="AllenHeath_CQ12", \
+ENV{PORT_L}="playback_13", ENV{PORT_R}="playback_14", \
+GOTO="start"
+
+##### RaspberryPi Pico audio card ##### -------- conditions
+## ACTION=="add", KERNEL=="controlC[0-9]", ATTRS{idVendor}=="2e8a", \
+# GROUP="audio", TAG+="systemd", SYMLINK+="Raspberry_Pico", \
+# GOTO="start"
+
+
+#----------- removed rule ------------------
+
+## When remove a device
+ACTION=="remove", ENV{USB_AUDIO_INTERFACE}!="", RUN+="/usr/bin/pkill -f 'wpexec .*$env{USB_AUDIO_INTERFACE}.lua' "
+
+GOTO="end"
+
+#----------- add rule set ------------------
+LABEL="start"
+GROUP="audio", SYMLINK+="snd_$env{USB_AUDIO_INTERFACE}", \
+RUN+="/bin/sh -c 'echo \"PORT_L=$env{PORT_L}\nPORT_R=$env{PORT_R}\" > /etc/wireplumber/env/$env{USB_AUDIO_INTERFACE}.env'", \
+TAG+="systemd", ENV{SYSTEMD_USER_WANTS}+="snd_usb_card@$env{USB_AUDIO_INTERFACE}.service"
+
+
+#---------- end ----------------------
+LABEL="end"

@@ -1,0 +1,19 @@
+[Unit]
+Description=Auto link in wireplumber
+Requisite=dev-snd_%I.device
+BindsTo=dev-snd_%I.device
+After=wireplumber.service
+After=graphical.target
+After=dev-snd_%I.device
+
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/wireplumber/env/%I.env
+Environment="CARD_NICK=%I"
+ExecStartPre=/usr/bin/cp /etc/wireplumber/scripts/usb_card_links.lua /run/user/%U/%I.lua
+ExecStart=/usr/bin/wpexec /run/user/%U/%I.lua
+TimeoutStartSec=10
+ExecStopPost=/usr/bin/rm /run/user/%U/%I.lua
+#Restart=on-failure
+#RestartSec=3

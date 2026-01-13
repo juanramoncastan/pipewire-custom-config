@@ -1,0 +1,148 @@
+#!/bin/bash
+
+# Muestra o cambia el valor frecuencia de muestreo de Pipewire 
+
+RUN_PERIOD=""
+RUN_RATE=""
+ALLOWED_RATE=$( pw-metadata -n settings 0 clock.allowed-rates | sed -e "/.\+value:.\+/!d" -e "s/.\+value:'\[\(.\+\)\]'.\+/\1/g" -e "s/,//g")
+ALLOWED_PERIOD="32 64 128 256 512 1024 2048 4096"
+function mssg_help() {
+    cat <<EOF
+Description: pw-set sets or shows pipewire rate and period.
+
+Usage:
+  pw-set [options]
+
+Options:
+  -p period     Set period: ${ALLOWED_PERIOD}.
+  -r rate       Set rate: ${ALLOWED_RATE}.
+  -f            Force to the values of period and rate arguments
+                (Locks for entire session and devices)
+  -u            Unset the forced values (Unlocks rate and period)
+  -s (default)  Shows rate and period. 
+  -h            Shows this message.
+
+EOF
+}
+
+
+function show_values()
+{
+    pw-metadata -n settings 0 $1 | sed -e "/clock\./!d" -e "s/.\+key:'\(.\+\)'.\+value:'\(.\+\)'.\+type:.\+/Set: \1 \2/g"
+}
+
+function rate 
+{
+    echo
+    echo Allowed rates: $ALLOWED_RATE
+    if [[ -n "${1}" ]] ; then
+        for RATE in ${ALLOWED_RATE} ; do
+            if [[ "${1}" = "${RATE}" ]] ; then
+                echo -e "Changing rate to ${1}"
+                pw-metadata -n settings 0 clock.rate $1  &> /dev/null
+                show_values clock.rate
+                if [[ "${2}" = "-f" ]] ; then 
+                    echo -e "Forcing rate to ${1}"
+                    pw-metadata -n settings 0 clock.force-rate $1 &> /dev/null
+                    show_values clock.force-rate
+                fi
+                break 
+            else
+                RATE=""  
+            fi
+        done 
+        [[ -n $RATE ]] || (echo -e "Error: \"${1}\" is not allowed" && exit 1 )
+    else
+        show_values clock.rate
+        show_values clock.force-rate
+    fi
+}
+
+# Muestra o cambia el valor del numero de periodos de Pipewire 
+function period
+{
+    echo
+    echo Allowed period: $ALLOWED_PERIOD
+    
+    if [[ -n "${1}" ]] ; then
+        for PERIOD in ${ALLOWED_PERIOD} ; do
+            if [[ "${1}" = "${PERIOD}" ]] ; then
+                echo -e "Changing period to ${1}"
+                pw-metadata -n settings 0 clock.quantum $1 &> /dev/null
+                show_values clock.quantum 
+                if [[ "${2}" = "-f" ]] ; then 
+                    echo -e "Forcing period to ${1}"
+                    pw-metadata -n settings 0 clock.force-quantum $1 &> /dev/null
+                    show_values clock.force-quantum 
+                fi
+                break   
+            else
+                PERIOD=""
+            fi
+        done
+        [[ -n $PERIOD ]] || (echo -e "Error: \"${1}\" is not allowed" && exit 1 )
+    else
+        show_values clock.quantum 
+        show_values clock.force-quantum
+    fi
+}
+
+
+OPTIONS=$(getopt  -o "hsfur:p:" -n '$0' -- "$@")
+
+if [ $? != 0 ] ; then
+    exit 1 ;
+fi
+
+if [[ "${@}" = "" ]] ; then
+    OPTIONS="-s --"
+fi
+
+eval set -- "$OPTIONS"
+
+while true ; do
+    case $1 in
+            -h)
+                mssg_help
+                shift
+                ;;
+            -p)
+                RUN_PERIOD="period $2"
+                shift 2
+                ;;
+            -r)
+                RUN_RATE="rate $2 "
+                shift 2
+                ;;
+            -s)
+                rate
+                period
+                shift
+                ;;
+            -f)
+                FORCE=$1
+                shift
+                ;;
+            -u)
+                if [[ "${1}" = "-u" ]] ; then 
+                    echo -e "Unsetting forced period and rate.\nSet to dynamic values"
+                    pw-metadata -n settings 0 clock.force-rate 0 &> /dev/null
+                    pw-metadata -n settings 0 clock.force-quantum 0 &> /dev/null
+                    show_values clock.force-rate
+                    show_values clock.force-quantum
+                fi
+                shift
+                ;;
+            --)
+                shift
+                [[ -n "${RUN_RATE}" ]] && ${RUN_RATE} ${FORCE}
+                [[ -n "${RUN_PERIOD}" ]] && ${RUN_PERIOD} ${FORCE}
+                break
+                ;;
+            *)
+                exit 1
+                ;;
+    esac
+done
+
+exit 0
