@@ -14,6 +14,7 @@ local USB_card_patterns = {
 ['Focusrite_Scarlett'] = 'Focusrite_Scarlett',
 ['MAudio_FastTrack'] = 'M-Audio_FastTrack',
 ['AllenHeath_CQ12'] = 'Allen_Heath_Ltd_CQ12T',
+['Behringer_UMC204'] = 'BEHRINGER_UMC204HD',
 }
 
 -------- Rules for Node -----------------------------------

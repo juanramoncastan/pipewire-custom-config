@@ -9,7 +9,7 @@ After=dev-snd_%I.device
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/wireplumber/env/%I.env
+EnvironmentFile=/run/env/%I.env
 Environment="CARD_NICK=%I"
 ExecStartPre=/usr/bin/cp /etc/wireplumber/scripts/usb_card_links.lua /run/user/%U/%I.lua
 ExecStart=/usr/bin/wpexec /run/user/%U/%I.lua

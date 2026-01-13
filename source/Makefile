@@ -16,7 +16,7 @@
 
 # ###########      pipewire-custom-config Makefile     ###########################
 
-# Version: 2.7
+# Version: 2.7.0
 # Run this makefile preceed  by sudo command !!!!!!!
 # BUILD = "../package_name-version" given from "debianizador" app
 
