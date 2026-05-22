@@ -1,0 +1,17 @@
+[Unit]
+Description=Auto link all
+Requires=wireplumber.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/sleep 6
+ExecStart=/usr/local/share/wireplumber/scripts/snd_link_devices.lua
+#ExecStartPost=/usr/bin/pkill -f "snd_link_devices.lua"
+TimeoutStartSec=6
+Restart=on-failure
+RestartSec=6
+Slice=session.slice
+
+[Install]
+WantedBy=default.target
+WantedBy=wireplumber.service
