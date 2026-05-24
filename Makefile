@@ -15,17 +15,19 @@
 # ----------------------------------------------------------------------
 
 # ###########      pipewire-custom-config Makefile     ###########################
-
-# Version: 3.0.0
-# Run this makefile preceed  by sudo command !!!!!!!
-# BUILD = "../package_name-version" given from "debianizador" app
+# Version: 3.0.1
+# BUILD = "../package-name_version_architecture" given from "debianizador" app
 
 BUILD = 
-CONFIG_PATH = /etc
+PREFIX_PATH = /usr/local
+SHARE_PATH = /share
 BIN_PATH = /usr/bin
-SYSTEMD_PATH = /systemd/user
+CONFIG_PATH = /etc
 UDEV_PATH = /udev/rules.d
-PROFILE_PATH = /profile.d
+SYSTEMD_PATH = /systemd/user
+WPCONF_PATH = /wireplumber/wireplumber.conf.d
+WPSCRIPTS_PATH = /wireplumber/scripts
+PW_PATH = /pipewire
 
 test:
 	@ echo User: $(USER)
@@ -33,41 +35,30 @@ test:
 
 pw_config:
 	@ echo "install: pw_config "
-	@ echo $(BUILD)$(CONFIG_PATH)/pipewire
-	@ mkdir -p $(BUILD)$(CONFIG_PATH)/pipewire
-	@ cp -R ./pipewire/*     $(BUILD)$(CONFIG_PATH)/pipewire/
+	@ echo $(BUILD)$(CONFIG_PATH)$(PW_PATH)
+	@ mkdir -p $(BUILD)$(CONFIG_PATH)$(PW_PATH)
+	@ cp -R .$(PW_PATH)/*   $(BUILD)$(CONFIG_PATH)$(PW_PATH)
 	@ echo
 
 
 wp_config:
-	@ echo "install: wp_config "
-	@ echo $(BUILD)$(CONFIG_PATH)/wireplumber
-	@ mkdir -p $(BUILD)$(CONFIG_PATH)/wireplumber
-	@ cp -R ./wireplumber/*     $(BUILD)$(CONFIG_PATH)/wireplumber/
+	@ echo -e "install: wp_config "
+	@ echo -e $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPCONF_PATH)
+	@ echo -e $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPSCRIPTS_PATH)
+	@ mkdir -p $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPCONF_PATH)
+	@ mkdir -p $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPSCRIPTS_PATH)
+	@ cp -R .$(WPCONF_PATH)/*  $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPCONF_PATH)
+	@ cp -R .$(WPSCRIPTS_PATH)/*     $(BUILD)$(PREFIX_PATH)$(SHARE_PATH)$(WPSCRIPTS_PATH)
 	@ echo
 
 
 systemd_services:
 	@ echo "install: systemd_services "
-	@ echo $(BUILD)$(CONFIG_PATH)/systemd/user
-	@ mkdir -p $(BUILD)$(CONFIG_PATH)/systemd/user
-	@ cp -R ./systemd/user/* $(BUILD)$(CONFIG_PATH)$(SYSTEMD_PATH)/
+	@ echo $(BUILD)$(CONFIG_PATH)$(SYSTEMD_PATH)
+	@ mkdir -p $(BUILD)$(CONFIG_PATH)$(SYSTEMD_PATH)
+	@ cp -R .$(SYSTEMD_PATH)/* $(BUILD)$(CONFIG_PATH)$(SYSTEMD_PATH)
 	@ echo
 
-
-udev_rules:
-	@ echo "install: udev_rules "
-	@ echo $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)
-	@ mkdir -p $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)
-	@ cp .$(UDEV_PATH)/* $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)/
-	@ echo
-
-profile:
-	@ echo "install: profile files "
-	@ echo $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)
-	@ mkdir -p $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)
-	@ cp .$(PROFILE_PATH)/* $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)/
-	@ echo
 
 binary:
 	@ echo "install: binary "
@@ -77,12 +68,11 @@ binary:
 	@ echo
 
 	
-install: test pw_config wp_config systemd_services udev_rules profile binary 
+install: test pw_config wp_config systemd_services binary 
 
 
 
 uninstall: test
-ifeq ($(USER),root)
 	@ echo "uninstall: pipewire custom  config"
 	@ for N in $$( ls ./pipewire )  ; do \
 		for F in $$( ls ./pipewire/$${N} ) ; do \
@@ -94,25 +84,13 @@ ifeq ($(USER),root)
 	done
 	@ echo
 	@ echo "uninstall: custom wireplumber config"
-	@ for N in $$( ls ./wireplumber )  ; do \
-		for F in $$( ls ./wireplumber/$${N} ) ; do \
-			if [ -f $(BUILD)$(CONFIG_PATH)/wireplumber/$${N}/$${F} ] ; then \
-				echo $(BUILD)$(CONFIG_PATH)/wireplumber/$${N}/$${F} && \
-				rm $(BUILD)$(CONFIG_PATH)/wireplumber/$${N}/$${F} ; \
+	@ for N in $$( ls .$(SHARE_PATH) )  ; do \
+		for F in $$( ls .$(SHARE_PATH)/$${N} ) ; do \
+			if [ -f $(BUILD)$(SHARE_PATH)/$${N}/$${F} ] ; then \
+				echo $(BUILD)$(SHARE_PATH)/$${N}/$${F} && \
+				rm $(BUILD)$(SHARE_PATH)/$${N}/$${F} ; \
 			fi ; \
 		done \
-	done
-	@ if [ -f $(BUILD)$(CONFIG_PATH)/wireplumber/env ] ; then \
-	    rm -fR $(BUILD)$(CONFIG_PATH)/wireplumber/env && \
-	    echo $(BUILD)$(CONFIG_PATH)/wireplumber/env ; \
-	    fi 
-	@ echo
-	@ echo "uninstall: udev rules"
-	@ for F in $$( ls ./$(UDEV_PATH) ) ; do \
-		if [ -f $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)/$${F} ] ; then \
-		echo $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)/$${F} && \
-		rm $(BUILD)$(CONFIG_PATH)$(UDEV_PATH)/$${F} ; \
-		fi ; \
 	done
 	@ echo
 	@ echo "uninstall: systemd service"
@@ -123,23 +101,13 @@ ifeq ($(USER),root)
 	    fi ; \
 	done
 	@ echo
-	@ echo "uninstall: profile"
-	@ for F in $$( ls ./$(UDEV_PATH) ) ; do \
-		if [ -f $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)/$${F} ] ; then \
-		echo $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)/$${F} && \
-		rm $(BUILD)$(CONFIG_PATH)$(PROFILE_PATH)/$${F} ; \
-		fi ; \
-	done
-	@ echo
 	@ echo "uninstall: binaries"
-	@ for F in $$( ls ./bin ) ; do \
+	@ for F in $$( ls .$(BIN_PATH) ) ; do \
 		if [ -f $(BUILD)$(BIN_PATH)/$${F} ] ; then \
 			echo $(BUILD)$(BIN_PATH)/$${F} && \
 			rm $(BUILD)$(BIN_PATH)/$${F} ; \
 		fi ; \
 	done
-	@ echo
-endif
 
 
 

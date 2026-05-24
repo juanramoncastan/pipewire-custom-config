@@ -1,0 +1,8 @@
+Package: pipewire-custom-config
+Version: 3.0.1
+Section: admin
+Priority: optional
+Architecture: all
+Depends: 
+Maintainer: Juan Ramon Castan
+Description: Custom configuration of pipewire and wireplumber for USB cards
