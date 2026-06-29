@@ -5,7 +5,7 @@
 RUN_PERIOD=""
 RUN_RATE=""
 ALLOWED_RATE=$( pw-metadata -n settings 0 clock.allowed-rates | sed -e "/.\+value:.\+/!d" -e "s/.\+value:'\[\(.\+\)\]'.\+/\1/g" -e "s/,//g")
-ALLOWED_PERIOD="32 64 128 256 512 1024 2048 4096"
+ALLOWED_PERIOD="16 32 48 64 96 128 144 192 240 256 512 1024 2048 4096 8192"
 function mssg_help() {
     cat <<EOF
 Description: pw-set sets or shows pipewire rate and period.
